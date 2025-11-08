@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>화물 입금 확인의 숨겨진 가치</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 250px;
+            max-height: 250px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 280px;
+                max-height: 280px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <div class="container max-w-5xl mx-auto p-6 md:p-10">
+
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+                사장님, '누락된 1.5%'가 순이익의 <span class="text-blue-600">7.5%</span>인 것을 아시나요?
+            </h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                매일 수십 건의 운송 내역과 은행 입금 내역을 수동으로 비교하는 것은 지치고, 실수하기 쉬운 일입니다.
+                대부분의 사장님들은 1~2% 정도의 미수금은 '어쩔 수 없는 비용'이라 생각하지만, 그 '누락된 돈'이 사장님의 실제 순이익에 얼마나 큰 영향을 미치는지 데이터로 직접 확인해 보세요.
+            </p>
+        </header>
+
+        <section class="bg-white p-6 md:p-8 rounded-2xl shadow-lg mb-10">
+            <h2 class="text-2xl font-bold text-center mb-6">나의 예상 손실액 확인하기</h2>
+            
+            <div class="mb-6">
+                <label for="revenueSlider" class="block text-lg font-semibold text-gray-700 mb-2">월 평균 매출을 선택하세요:</label>
+                <input id="revenueSlider" type="range" min="500" max="3000" value="1000" step="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <div class="text-center text-2xl font-bold text-blue-600 mt-3">
+                    월 매출: <span id="revenueDisplay">1,000</span> 만원
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-8 mt-8">
+                <div class="grid md:grid-cols-2 gap-8">
+                    
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-bold text-center mb-4">매출과 비용 구조 (예상)</h3>
+                        <p class="text-center text-gray-600 mb-4 text-sm">
+                            일반적인 화물 운송업의 높은 비용 구조(유류비, 톨비, 정비비, 수수료 등)를 반영한 예상치입니다.
+                        </p>
+                        
+                        <div class="font-semibold space-y-2 text-lg mb-4">
+                            <div class="flex justify-between">
+                                <span>총 매출:</span>
+                                <span id="metricRevenue">10,000,000 원</span>
+                            </div>
+                            <div class="flex justify-between text-red-600">
+                                <span>총 운영 비용 (약 80%):</span>
+                                <span id="metricCost">8,000,000 원</span>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-bold text-center mb-4">순이익과 누락 손실 (예상)</h3>
+                         <p class="text-center text-gray-600 mb-4 text-sm">
+                            매출의 1.5%가 누락되었을 때, 사장님의 순이익이 받는 영향입니다.
+                        </p>
+
+                        <div class="font-semibold space-y-2 text-lg mb-4">
+                             <div class="flex justify-between">
+                                <span>목표 순이익 (약 20%):</span>
+                                <span id="metricTargetProfit">2,000,000 원</span>
+                            </div>
+                            <div class="flex justify-between text-orange-600 font-bold">
+                                <span>누락 손실 (매출의 1.5%):</span>
+                                <span id="metricLoss">150,000 원</span>
+                            </div>
+                            <hr class="my-1">
+                            <div class="flex justify-between text-blue-700 font-bold">
+                                <span>실제 순이익:</span>
+                                <span id="metricActualProfit">1,850,000 원</span>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="profitImpactChart"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 md:p-8 rounded-2xl shadow-lg mb-10">
+            <h2 class="text-2xl font-bold text-center mb-6">데이터가 의미하는 것: "숨겨진 비용의 진짜 크기"</h2>
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg text-center">
+                <p class="text-xl md:text-2xl text-gray-800">
+                    월 매출 <span id="analysisRevenue" class="font-bold">1,000</span>만원 기준, '고작' <span id="analysisLoss" class="font-bold text-orange-600">15</span>만원의 누락(1.5%)은<br>
+                    사장님의 월 순이익 <span id="analysisTargetProfit" class="font-bold">200</span>만원 중...
+                </p>
+                <div class="my-4 text-4xl md:text-5xl font-bold text-red-600">
+                    <span id="lossPercentage">7.5</span>%
+                </div>
+                <p class="text-xl md:text-2xl text-gray-800">
+                    를 통째로 사라지게 만듭니다.
+                </p>
+            </div>
+            
+            <p class="mt-6 text-lg text-gray-700 leading-relaxed">
+                운송업의 순이익률은 평균적으로 20% 내외로 높지 않습니다. 80%의 비용은 유류비, 톨비, 보험료 등 반드시 지출해야 하는 고정비에 가깝습니다.
+                결국 사장님이 가져가시는 실제 이익은 매출의 20%에서 나옵니다.
+            </p>
+            <p class="mt-4 text-lg text-gray-700 leading-relaxed">
+                이때 발생하는 '매출의 1.5% 누락'은 <span class="font-bold">비용(80%)에서 차감되는 것이 아니라, 사장님의 순이익(20%)에서 직접 차감</span>됩니다.
+                이것이 바로 매출 대비 1.5%의 작은 손실이 순이익 대비 <span id="lossPercentage2" class="font-bold text-red-600">7.5</span>%라는 큰 손실로 다가오는 이유입니다.
+            </p>
+        </section>
+
+        <section class="text-center bg-blue-600 text-white p-8 md:p-12 rounded-2xl shadow-xl">
+            <h2 class="text-3xl font-bold mb-4">그래서 '화물 입금 확인' 프로그램이 필요합니다.</h2>
+            <p class="text-xl max-w-3xl mx-auto mb-6">
+                저희 프로그램은 단순한 대조기가 아닙니다. 사장님의 소중한 순이익을 지키는 가장 강력한 도구입니다.
+            </p>
+            <ul class="list-none space-y-3 text-lg max-w-xl mx-auto text-left mb-8">
+                <li class="flex items-center">
+                    <span class="text-2xl mr-3">✓</span>
+                    <span>수백, 수천 건의 운송 내역과 입금 내역을 단 몇 초 만에 비교</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="text-2xl mr-3">✓</span>
+                    <span>단순 지연 입금과 완전 누락 건을 자동으로 분류하여 리포트</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="text-2xl mr-3">✓</span>
+                    <span>수동 작업의 시간 절약은 물론, 매달 놓치고 있던 순이익 회복</span>
+                </li>
+            </ul>
+            <p id="finalValue" class="text-2xl md:text-3xl font-bold p-4 bg-white text-blue-700 rounded-lg inline-block shadow-inner">
+                매달 <span id="finalLoss" class="text-orange-600">150,000</span>원의 순손실을 막는 것, <br>그것이 이 프로그램의 진짜 가치입니다.
+            </p>
+        </section>
+
+    </div>
+
+    <script>
+        let revenueDoughnut, profitBar;
+
+        const formatCurrency = (value) => {
+            return new Intl.NumberFormat('ko-KR').format(value) + ' 원';
+        };
+
+        const updateReport = (revenueInManWon) => {
+            const revenue = revenueInManWon * 10000;
+            
+            const costRate = 0.80;
+            const profitRate = 0.20;
+            const omissionRate = 0.015;
+
+            const cost = revenue * costRate;
+            const targetProfit = revenue * profitRate;
+            const loss = revenue * omissionRate;
+            const actualProfit = targetProfit - loss;
+            const lossPerc = (loss / targetProfit) * 100;
+
+            document.getElementById('revenueDisplay').textContent = new Intl.NumberFormat('ko-KR').format(revenueInManWon);
+            
+            document.getElementById('metricRevenue').textContent = formatCurrency(revenue);
+            document.getElementById('metricCost').textContent = formatCurrency(cost);
+            document.getElementById('metricTargetProfit').textContent = formatCurrency(targetProfit);
+            document.getElementById('metricLoss').textContent = formatCurrency(loss);
+            document.getElementById('metricActualProfit').textContent = formatCurrency(actualProfit);
+
+            document.getElementById('analysisRevenue').textContent = new Intl.NumberFormat('ko-KR').format(revenueInManWon);
+            document.getElementById('analysisLoss').textContent = new Intl.NumberFormat('ko-KR').format(loss / 10000);
+            document.getElementById('analysisTargetProfit').textContent = new Intl.NumberFormat('ko-KR').format(targetProfit / 10000);
+            
+            const lossPercFixed = lossPerc.toFixed(1);
+            document.getElementById('lossPercentage').textContent = lossPercFixed;
+            document.getElementById('lossPercentage2').textContent = lossPercFixed;
+
+            document.getElementById('finalLoss').textContent = formatCurrency(loss);
+            
+            revenueDoughnut.data.datasets[0].data = [cost, targetProfit];
+            revenueDoughnut.update();
+
+            profitBar.data.datasets[0].data = [actualProfit];
+            profitBar.data.datasets[1].data = [loss];
+            profitBar.options.scales.x.max = targetProfit * 1.1;
+            profitBar.update();
+        };
+
+        const initCharts = () => {
+            const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+            revenueDoughnut = new Chart(ctxRevenue, {
+                type: 'doughnut',
+                data: {
+                    labels: ['운영 비용 (80%)', '목표 순이익 (20%)'],
+                    datasets: [{
+                        data: [8000000, 2000000],
+                        backgroundColor: ['#ef4444', '#3b82f6'],
+                        borderColor: ['#f8fafc', '#f8fafc'],
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 13 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const item = tooltipItems[0];
+                                    let label = item.chart.data.labels[item.dataIndex];
+                                    if (Array.isArray(label)) {
+                                      return label.join(' ');
+                                    } else {
+                                      return label;
+                                    }
+                                },
+                                label: function(context) {
+                                    return context.label + ': ' + formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const ctxProfit = document.getElementById('profitImpactChart').getContext('2d');
+            profitBar = new Chart(ctxProfit, {
+                type: 'bar',
+                data: {
+                    labels: ['순이익 비교'],
+                    datasets: [
+                        {
+                            label: '실제 순이익',
+                            data: [1850000],
+                            backgroundColor: '#3b82f6',
+                        },
+                        {
+                            label: '누락 손실',
+                            data: [150000],
+                            backgroundColor: '#f97316',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value / 10000 + '만';
+                                }
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 13 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const item = tooltipItems[0];
+                                    let label = item.chart.data.labels[item.dataIndex];
+                                    if (Array.isArray(label)) {
+                                      return label.join(' ');
+                                    } else {
+                                      return label;
+                                    }
+                                },
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const revenueSlider = document.getElementById('revenueSlider');
+            initCharts();
+            updateReport(parseInt(revenueSlider.value));
+            
+            revenueSlider.addEventListener('input', (e) => {
+                updateReport(parseInt(e.target.value));
+            });
+        });
+
+    </script>
+</body>
+</html>
